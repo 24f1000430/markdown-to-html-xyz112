@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Markdown → HTML (Marked + Highlight.js)</title>
+
+  <!-- Highlight.js theme -->
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/highlight.js@11.9.0/styles/github.min.css">
+
+  <style>
+    :root {
+      color-scheme: light dark;
+    }
+    body {
+      margin: 0;
+      font-family: system-ui, -apple-system, Segoe UI, Roboto, Ubuntu, Cantarell, Noto Sans, Arial, "Apple Color Emoji", "Segoe UI Emoji";
+      line-height: 1.6;
+      background: canvas;
+      color: CanvasText;
+    }
+    header {
+      padding: 1rem 1.25rem;
+      border-bottom: 1px solid color-mix(in oklab, CanvasText 12%, Canvas 88%);
+      background: color-mix(in oklab, Canvas 96%, CanvasText 4%);
+    }
+    header h1 {
+      margin: 0 0 0.25rem 0;
+      font-size: 1.25rem;
+    }
+    header p {
+      margin: 0;
+      color: color-mix(in oklab, CanvasText 60%, Canvas 40%);
+      font-size: 0.95rem;
+    }
+    main {
+      max-width: 900px;
+      margin: 0 auto;
+      padding: 1.25rem;
+    }
+    #status {
+      margin: 0 0 1rem 0;
+      font-size: 0.95rem;
+      color: color-mix(in oklab, CanvasText 70%, Canvas 30%);
+    }
+    article.markdown-body {
+      /* Lightweight GitHub-like markdown styling */
+      line-height: 1.7;
+    }
+    article.markdown-body h1,
+    article.markdown-body h2,
+    article.markdown-body h3 {
+      border-bottom: 1px solid color-mix(in oklab, CanvasText 12%, Canvas 88%);
+      padding-bottom: 0.3rem;
+    }
+    article.markdown-body pre {
+      padding: 0.75rem;
+      overflow: auto;
+      border-radius: 6px;
+      background: color-mix(in oklab, Canvas 92%, CanvasText 8%);
+    }
+    article.markdown-body code {
+      font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, "Liberation Mono", monospace;
+      font-size: 0.95em;
+      background: color-mix(in oklab, Canvas 92%, CanvasText 8%);
+      padding: 0.1em 0.3em;
+      border-radius: 4px;
+    }
+    article.markdown-body pre code {
+      background: transparent;
+      padding: 0;
+      border-radius: 0;
+      font-size: 0.95em;
+    }
+    footer {
+      max-width: 900px;
+      margin: 0 auto;
+      padding: 1rem 1.25rem 2rem;
+      color: color-mix(in oklab, CanvasText 60%, Canvas 40%);
+      font-size: 0.9rem;
+    }
+    a {
+      color: #0969da;
+      text-decoration: none;
+    }
+    a:hover {
+      text-decoration: underline;
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>Markdown Preview</h1>
+    <p>Rendering input.md with Marked.js and Highlight.js</p>
+  </header>
+
+  <main>
+    <div id="status" role="status" aria-live="polite">Loading input.md…</div>
+    <article id="content" class="markdown-body"></article>
+  </main>
+
+  <footer>
+    <span>Powered by </span>
+    <a href="https://marked.js.org/" target="_blank" rel="noopener">Marked.js</a>
+    <span> and </span>
+    <a href="https://highlightjs.org/" target="_blank" rel="noopener">Highlight.js</a>.
+  </footer>
+
+  <!-- Marked.js -->
+  <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js" defer></script>
+  <!-- Highlight.js (common languages build) -->
+  <script src="https://cdn.jsdelivr.net/npm/highlight.js@11.9.0/lib/common.min.js" defer></script>
+
+  <script>
+    async function renderMarkdown() {
+      const statusEl = document.getElementById('status');
+      const contentEl = document.getElementById('content');
+
+      try {
+        // Ensure libraries are available
+        if (typeof marked === 'undefined') {
+          throw new Error('Marked.js failed to load.');
+        }
+        if (typeof hljs === 'undefined') {
+          throw new Error('Highlight.js failed to load.');
+        }
+
+        const res = await fetch('input.md', { cache: 'no-cache' });
+        if (!res.ok) {
+          throw new Error('HTTP ' + res.status + ' while fetching input.md');
+        }
+        const md = await res.text();
+
+        // Configure Marked for sane defaults
+        marked.setOptions({
+          breaks: true,
+          mangle: false,
+          headerIds: true
+        });
+
+        const html = marked.parse(md);
+        contentEl.innerHTML = html;
+
+        // Apply syntax highlighting after injecting HTML
+        hljs.highlightAll();
+
+        statusEl.textContent = '';
+      } catch (err) {
+        statusEl.textContent = 'Failed to render markdown: ' + err.message;
+        statusEl.style.color = 'crimson';
+        console.error(err);
+      }
+    }
+
+    // Wait for both DOM and deferred scripts
+    window.addEventListener('load', renderMarkdown);
+  </script>
+</body>
+</html>
